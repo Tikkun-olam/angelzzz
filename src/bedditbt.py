@@ -126,16 +126,19 @@ if __name__ == "__main__":
         spamwriter = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
         print("Writing to: " + sys.argv[1])
+        connected = False
         while True:
             try:
+                if not connected:
+                    a = BedditStreamer()
                 channel1, channel2 = a.get_reading()
                 #print(channel1, channel2)
                 spamwriter.writerow([ time.time(),channel1[0], channel2[0]])
                 csvfile.flush()
             except Exception:
+                connected = False
                 time.sleep(1)
                 print("except " + str(time.time()))
-                a = BedditStreamer()
+                
 
     
-
