@@ -5,6 +5,7 @@ import numpy
 import time
 import gzip
 import sys
+import traceback
 
 class ProtocolError(Exception):
     pass
@@ -120,7 +121,7 @@ def main():
 
 if __name__ == "__main__":
     import csv
-    a = BedditStreamer()
+    a = None
     
     with gzip.open(sys.argv[1], 'w') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',',
@@ -130,6 +131,7 @@ if __name__ == "__main__":
         while True:
             try:
                 if not connected:
+                    connected = True
                     a = BedditStreamer()
                 channel1, channel2 = a.get_reading()
                 #print(channel1, channel2)
@@ -139,6 +141,8 @@ if __name__ == "__main__":
                 connected = False
                 time.sleep(1)
                 print("except " + str(time.time()))
+                print(traceback.format_exc())
+                
                 
 
     
