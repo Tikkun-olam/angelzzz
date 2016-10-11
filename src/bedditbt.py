@@ -93,30 +93,6 @@ class BedditStreamer:
     def close(self):
         self.conn.stop_streaming()
         self.conn.disconnect()
-        
-                    
-
-def main():
-    device = '/dev/rfcomm0'
-
-    ser = serial.Serial()
-    ser.port = device
-    ser.open()
-
-    conn = BedditConnection(ser)
-
-    try:
-        conn.open_connection()
-        conn.start_streaming()
-
-        while True:
-            packet_number, channel1, channel2 = conn.read_sample_packet()
-            for i in channel1:
-                print i
-
-    finally:
-        conn.stop_streaming()
-        conn.disconnect()
 
 
 if __name__ == "__main__":
