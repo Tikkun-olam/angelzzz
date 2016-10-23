@@ -87,3 +87,5 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+src/beddit_mac.txt
