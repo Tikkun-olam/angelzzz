@@ -4,11 +4,12 @@ import time
 import traceback
 import os.path
 import os
-from sqlalchemy import  create_engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from Database import AngelzzzDB, Base
+from timeout import timeout
 
-RFCOMM_DEV = "/dev/rfcomm0"
 DB_PATH = "sqlite:////home/pi/angelzzz.sql"
 
 def avg(l):
@@ -17,15 +18,15 @@ def avg(l):
 def init_db(engine):
     Base.metadata.create_all(engine)
 
-def inser_to_db(engine, time, beddit, channel1, channel2):
-    connection = engine.connect()
-    sql = "insert into " + AngelzzzDB.__tablename__ + " values (?,?,?,?)"
-    variables = (time, beddit, channel1, channel2)
-    connection.execute(sql,variables)
-    connection.close()
+def insert_to_db(engine, time, beddit, channel1, channel2):
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+    entry = AngelzzzDB(time=time, beddit=beddit, channel1=channel1, channel2=channel2)
+    session.add(entry)
+    session.commit()
     return
     
-
 def run_server_forever():
     a = None
     engine = create_engine(DB_PATH)
@@ -41,19 +42,15 @@ def run_server_forever():
                 print("Connected")
             channel1, channel2 = a.get_reading()
             data = [ time.time(),avg(channel1), avg(channel2)]
-            inser_to_db(engine, time.time(), "beddit",avg(channel1), avg(channel2))
+            insert_to_db(engine, time.time(), "beddit",avg(channel1), avg(channel2))
             # print(data)
         except Exception:
-            connected = False
             time.sleep(1)
             print("except " + str(time.time()))
             print(traceback.format_exc())
     
 if __name__ == "__main__":
     PATH = os.path.dirname(os.path.realpath(__file__))
-    if not os.path.isfile(""):
-        os.system(os.path.join(PATH, "connect.sh"))
-        
     
     run_server_forever()
 
