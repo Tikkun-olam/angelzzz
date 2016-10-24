@@ -20,4 +20,7 @@ class AngelzzzDB(Base):
         self.beddit = beddit
         self.channel1 = channel1
         self.channel2 = channel2
+    
+    def __repr__(self):
+        return "<AngelzzzDB(time='%f', beddit='%s', channel1='%f', channel2='%f')>" % (self.time, self.beddit, self.channel1, self.channel2)
 
