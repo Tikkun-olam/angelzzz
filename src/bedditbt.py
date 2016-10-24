@@ -1,11 +1,13 @@
-import serial
 import binascii
+import os
+import os.path
 import struct
 import numpy
 import time
 import gzip
 import sys
 import traceback
+import bluetooth
 
 class ProtocolError(Exception):
     pass
@@ -17,34 +19,39 @@ class BedditConnection(object):
         self.connection = connection
 
     def open_connection(self):
-        self.connection.write("OK\n")
+        self.connection.send("OK\n".encode())
+        time.sleep(0.2)
 
-        response_to_ok = self.connection.readline()
+        response_to_ok = self.connection.recv(3)
 
         if response_to_ok != 'OK\n':
             raise ProtocolError("Got {} after OK".format(repr(response_to_ok)))
 
     def start_streaming(self):
-        self.connection.write("START\n")
+        self.connection.send("START\n".encode())
 
     def stop_streaming(self):
-        self.connection.write("STOP\n")
+        self.connection.send("STOP\n".encode())
 
     def disconnect(self):
         self.connection.close()
 
     def _read_packet(self):
-        header = self.connection.read(6)
+        header = self.connection.recv(6)
+        if len(header) < 6:
+            print("adjusting")
+            header = header + self.connection.recv(6 - len(header))
 
         if len(header) != 6:
             raise ProtocolError()
 
         packet_number = struct.unpack('I', header[:4])[0]
         payload_length = struct.unpack('H', header[4:])[0]
+        time.sleep(0.15)
 
-        payload = self.connection.read(payload_length)
+        payload = self.connection.recv(payload_length)
 
-        crc = struct.unpack('I', self.connection.read(4))[0]
+        crc = struct.unpack('I', self.connection.recv(4))[0]
 
         computed_crc = binascii.crc32(header + payload) & 0xffffffff
 
@@ -63,13 +70,17 @@ class BedditConnection(object):
 
         return (packet_number, channel1, channel2)
 
+def get_beddit_mac():
+    beddit_mac = None
+    PATH = os.path.dirname(os.path.realpath(__file__))
+    with open (os.path.join(PATH, "beddit_mac.txt"), "r") as mac_file:
+        beddit_mac=mac_file.readlines()[0].strip()
+    return str(beddit_mac)
+
 class BedditStreamer:
     def __init__(self):
-        device = '/dev/rfcomm0'
-
-        ser = serial.Serial()
-        ser.port = device
-        ser.open()
+        ser = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+        ser.connect((get_beddit_mac(), 1))
         self.conn = BedditConnection(ser)
         
         try:
