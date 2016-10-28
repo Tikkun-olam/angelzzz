@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+
+set prompt "#"
+
+spawn sudo bluetoothctl 
+expect -re $prompt
+send "power off\r"
+expect -re $prompt
+sleep 1
+send "power on\r"
+sleep 1
+expect -re $prompt
+send "exit\r"
+expect eof
+
+
