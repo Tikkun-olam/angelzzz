@@ -8,6 +8,9 @@ import gzip
 import sys
 import traceback
 import bluetooth
+from timeout import timeout, TimeoutError
+
+debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
 class ProtocolError(Exception):
     pass
@@ -22,7 +25,7 @@ class BedditConnection(object):
         self.connection.send("OK\n".encode())
         time.sleep(0.2)
 
-        response_to_ok = self.connection.recv(3)
+        response_to_ok = self._receive(3)
 
         if response_to_ok != 'OK\n':
             raise ProtocolError("Got {} after OK".format(repr(response_to_ok)))
@@ -36,11 +39,19 @@ class BedditConnection(object):
     def disconnect(self):
         self.connection.close()
 
+    def _receive(self, packet_size, timeout_max=1):
+        data = None
+        with timeout(timeout_max):
+            data = self.connection.recv(packet_size)
+            while len(data) < packet_size:
+                if debug:
+                    print("receiving " + str(len(data)) + "/" + packet_size)
+                data = data + self.connection.recv(packet_size - len(data))
+
+        return data
+
     def _read_packet(self):
-        header = self.connection.recv(6)
-        if len(header) < 6:
-            print("adjusting")
-            header = header + self.connection.recv(6 - len(header))
+        header = self._receive(6)
 
         if len(header) != 6:
             raise ProtocolError()
@@ -49,9 +60,9 @@ class BedditConnection(object):
         payload_length = struct.unpack('H', header[4:])[0]
         time.sleep(0.15)
 
-        payload = self.connection.recv(payload_length)
+        payload = self._receive(payload_length)
 
-        crc = struct.unpack('I', self.connection.recv(4))[0]
+        crc = struct.unpack('I', self._receive(4))[0]
 
         computed_crc = binascii.crc32(header + payload) & 0xffffffff
 
@@ -79,17 +90,27 @@ def get_beddit_mac():
 
 class BedditStreamer:
     def __init__(self):
-        ser = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-        ser.connect((get_beddit_mac(), 1))
-        self.conn = BedditConnection(ser)
-        
+        self.port = 1
         try:
+            with timeout(10):
+                ser = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+                ser.connect((get_beddit_mac(), self.port))
+        except TimeoutError as e:
+            print("connection timeout")
+            self.port += 1
+            ser.close()
+            raise e
+        self.conn = BedditConnection(ser)
+        try:
+        
             self.conn.open_connection()
             self.conn.start_streaming()
         
-        except:
+        except Exception as e:
+            print("beddit dissconnect")
             self.conn.stop_streaming()
             self.conn.disconnect()
+            raise e
         
     def get_reading(self):
         chan1 = []
