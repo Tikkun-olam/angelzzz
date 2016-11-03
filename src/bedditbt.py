@@ -20,6 +20,7 @@ class BedditConnection(object):
 
     def __init__(self, connection):
         self.connection = connection
+        self.read_count = 0
 
     def open_connection(self):
         self.connection.send("OK\n".encode())
@@ -27,7 +28,7 @@ class BedditConnection(object):
 
         response_to_ok = self._receive(3)
 
-        if response_to_ok != 'OK\n':
+        if response_to_ok != 'OK\n' and response_to_ok != 'AT\n':
             raise ProtocolError("Got {} after OK".format(repr(response_to_ok)))
 
     def start_streaming(self):
@@ -51,6 +52,15 @@ class BedditConnection(object):
         return data
 
     def _read_packet(self):
+        self.read_count += 1
+        
+        if self.read_count > 1000:
+            if debug:
+                print("Restarting stream")
+            self.read_count = 0
+            self.stop_streaming()
+            self.start_streaming()
+        
         header = self._receive(6)
 
         if len(header) != 6:
@@ -90,6 +100,8 @@ def get_beddit_mac():
 
 class BedditStreamer:
     def __init__(self):
+        self.last_packet_number = None
+        self.packet_number_count = 0
         self.port = 1
         try:
             with timeout(10):
@@ -117,6 +129,8 @@ class BedditStreamer:
         chan2 = []
 
         packet_number, channel1, channel2 = self.conn.read_sample_packet()
+        self.last_packet_number = packet_number
+        self.packet_number_count += 1
         for i in channel1:
             chan1.append(i)
         for i in channel2:
