@@ -36,6 +36,9 @@ class BedditConnection(object):
 
     def stop_streaming(self):
         self.connection.send("STOP\n".encode())
+        
+    def get_info(self):
+        self.connection.send("INFO\n".encode())
 
     def disconnect(self):
         self.connection.close()
