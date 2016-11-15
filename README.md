@@ -9,7 +9,37 @@ The challange is to build a sleep and seizure for kids with Angelman Syndrome, t
 * Raspberrypi 3/2 with bluetooth/wifi
 
 # Installation
-TBD, we are still hacking it together
+1) Set up a raspberrypi with Raspbian that is conencted to the internet
+
+2) Run:
+
+~~~
+cd /home/pi
+git clone https://github.com/Tikkun-olam/angelzzz.git
+cd angelzzz/src
+bash ./install_deps.sh
+~~~
+
+3) Pair your beddit to your raspberrypi using
+
+~~~
+sudo bluetoothctl 
+# power on
+# agent on
+# default-agent
+# scan on
+# pair [beddit MAC]
+# trust [beddit MAC]
+# connect [beddit MAC]
+~~~
+
+4) Place your beddit mac in ``src/beddit_mac.txt`` (take a look at ``src/beddit_mac.txt.example`` for example.
+
+5) To start logging run: ``src/ngelzzz_server.py``
+
+## Viewing logged data
+To output a csv-readable file our of the database stored in ``/home/pi/angelzzz.sql`` run:
+``read_results.py > output.csv``
 
 # Specs
 * [Beddit protocol](https://github.com/sliedes/beddit-driver/blob/master/protocol.txt)
