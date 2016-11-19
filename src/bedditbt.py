@@ -18,9 +18,11 @@ class ProtocolError(Exception):
 
 class BedditConnection(object):
 
-    def __init__(self, connection):
+    def __init__(self, connection, timeout1=5):
         self.connection = connection
         self.read_count = 0
+        self.timeout = timeout1
+        self.last_cont = time.time()
 
     def open_connection(self):
         self.connection.send("OK\n".encode())
@@ -32,7 +34,11 @@ class BedditConnection(object):
             raise ProtocolError("Got {} after OK".format(repr(response_to_ok)))
 
     def start_streaming(self):
-        self.connection.send("START\n".encode())
+        if self.timeout == None:
+            self.connection.send("START\n".encode())
+        else:
+            self.connection.send("START " + str(self.timeout) + "\n".encode())
+        return
 
     def stop_streaming(self):
         self.connection.send("STOP\n".encode())
@@ -83,6 +89,10 @@ class BedditConnection(object):
 
     def read_sample_packet(self):
         packet_number, payload = self._read_packet()
+        now = time.time()
+        if self.timeout is not None and now - self.last_cont > self.timeout - 1:
+            self.connection.send("CONT\n".encode())
+            self.last_cont = now
 
         sample_array = numpy.fromstring(payload, "uint16")
 
