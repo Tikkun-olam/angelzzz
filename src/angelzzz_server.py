@@ -8,6 +8,7 @@ import sys
 import bluetooth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import datetime
 
 from Database import AngelzzzDB, Base
 from timeout import timeout, TimeoutError
@@ -31,6 +32,8 @@ def insert_to_db(engine, time, beddit, channel1, channel2):
     session.add(entry)
     session.commit()
     return
+def get_nice_time():
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
     
 def run_server_forever():
     a = None
@@ -38,6 +41,7 @@ def run_server_forever():
     init_db(engine)
     
     connected = False
+    last_packet_number = None
     while True:
         try:
             if not connected:
@@ -46,13 +50,17 @@ def run_server_forever():
                     connected = True
                     a = BedditStreamer()
                     print("Connected")
+            last_packet_number = a.last_packet_number
             with timeout(10):
                 channel1, channel2 = a.get_reading()
+            last_packet_number = a.last_packet_number
+            #print(a.packet_number_count)
+            #print("last packet: " + str(a.last_packet_number))
             data = [ time.time(),avg(channel1), avg(channel2)]
             insert_to_db(engine, time.time(), "beddit",avg(channel1), avg(channel2))
             # print(data)
         except (bluetooth.BluetoothError, TimeoutError) as e:
-            print("got: " + str(e))
+            print("got: " + str(e) + " at packet: " + str(last_packet_number) + " on time: " + str(get_nice_time()))
             if e.message.find("Bad file descriptor") > 0 or e.message.find("16") > 0:
                 #print("restart bluetooth power")
                 os.system(os.path.join(PATH, "restart_bluetooth_power"))
@@ -70,9 +78,9 @@ def run_server_forever():
             except Exception:
                 print(traceback.format_exc())
                 sys.exit()
-        except Exception:
+        except Exception as e:
             time.sleep(1)
-            print("except " + str(time.time()))
+            print("got: " + str(e) + " at packet: " + str(last_packet_number)  + " on time: " + str(get_nice_time()))
             print(traceback.format_exc())
         #except bluetooth.ProtocolError as e:
         #    print("restarting")
