@@ -38,6 +38,6 @@ if __name__ == "__main__":
  #   plt.plot(time(w),np.ones(len(w)),'o')
  #   plt.plot(time,zccw*10000)
 
-    plt.xlabel('time in minuts')
-    plt.ylabel('pressure index')
+    plt.xlabel('Time [mintues]')
+    plt.ylabel('Pressure index [abt units]')
     plt.show()
