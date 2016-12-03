@@ -1,9 +1,11 @@
 import bluetooth
 import struct
 from threading import Thread
+import multiprocessing
 import os.path
 import os
 import time
+import sys
 
 def get_beddit_mac():
     beddit_mac = None
@@ -30,15 +32,18 @@ class ThreadWithReturnValue(Thread):
         Thread.join(self)
         return self._return
 
+def listen():
+    server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
 
-server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
+    port = 1
+    server_sock.bind(("",port))
+    server_sock.listen(1)
 
-port = 1
-server_sock.bind(("",port))
-server_sock.listen(1)
+    phone,address = server_sock.accept()
+    print "Accepted connection from ",address
+    return phone
 
-phone,address = server_sock.accept()
-print "Accepted connection from ",address
+phone = listen()
 
 ser = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 print("connecting to: " + str(get_beddit_mac()))
@@ -76,16 +81,23 @@ os.system("rm /tmp/file_beddit_to_phone.log")
 with open("/tmp/file_phone_to_beddit.log", 'w') as file_phone_to_beddit:
     with open("/tmp/file_beddit_to_phone.log", 'w') as file_beddit_to_phone:
         
-        ser_phone = ThreadWithReturnValue(target=receive_and_pass, args=(ser, phone, file_beddit_to_phone))
-        phone_ser = ThreadWithReturnValue(target=receive_and_pass, args=(phone, ser, file_phone_to_beddit, True))
-
-        phone_ser.daemon=True
-        ser_phone.daemon=True
-
+        ser_phone = multiprocessing.Process(target=receive_and_pass, args=(ser, phone, file_beddit_to_phone))
+        phone_ser = multiprocessing.Process(target=receive_and_pass, args=(phone, ser, file_phone_to_beddit, True))
+        
         try:
             ser_phone.start()
             phone_ser.start()
+            
             while running:
+                if not phone_ser.is_alive():
+                    phone_ser.join()
+                    if ser_phone.is_alive():
+                        ser_phone.terminate()
+                        ser_phone.join()
+                        sys.exit()
+                        
+                    
+                    
                 time.sleep(1)
 
         except KeyboardInterrupt as e:
@@ -94,4 +106,6 @@ with open("/tmp/file_phone_to_beddit.log", 'w') as file_phone_to_beddit:
             phone_ser.kill_received = True
             running = False
             raise e
+        except Exception as e:
+            print("need to reconnect: " + str(e))
     
