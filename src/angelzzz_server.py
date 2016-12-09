@@ -8,6 +8,7 @@ import sys
 import bluetooth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from common import avg
 
 from Database import AngelzzzDB, Base
 from timeout import timeout, TimeoutError

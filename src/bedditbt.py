@@ -9,7 +9,7 @@ import sys
 import traceback
 import shutil
 import bluetooth
-from common import iniToDict
+from common import iniToDict, avg
 import datetime
 from timeout import timeout, TimeoutError
 
@@ -36,9 +36,6 @@ else:
 
 def get_nice_time():
     return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-
-def avg(l):
-    return sum(l) / float(len(l))
 
 class ProtocolError(Exception):
     pass

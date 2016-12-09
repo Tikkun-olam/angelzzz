@@ -1,6 +1,9 @@
 from ConfigParser import SafeConfigParser
 from collections import OrderedDict
 
+def avg(l):
+    return sum(l) / float(len(l))
+
 def iniToDict(path):
     ''' Read an ini path in to a dict
     :param path: Path to file
