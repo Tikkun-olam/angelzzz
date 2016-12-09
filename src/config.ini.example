@@ -1,0 +1,4 @@
+[beddit]
+relay=dummy
+mac=00:07:80:17:CD:3D
+#relay=gpio
