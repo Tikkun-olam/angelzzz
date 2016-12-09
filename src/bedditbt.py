@@ -7,10 +7,38 @@ import time
 import gzip
 import sys
 import traceback
+import shutil
 import bluetooth
+from common import iniToDict
+import datetime
 from timeout import timeout, TimeoutError
 
 debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
+
+PATH = os.path.dirname(os.path.realpath(__file__))
+CONFIG_PATH = os.path.join(PATH, "config.ini")
+
+if not os.path.isfile(CONFIG_PATH):
+    shutil.copy(os.path.join(PATH, "config.ini.example"),CONFIG_PATH)
+
+settings = iniToDict(CONFIG_PATH)
+
+
+# Setup relay
+if settings["beddit"]["relay"] == "dummy":
+    def restart():
+        return
+elif settings["beddit"]["relay"] == "gpio":
+    from raspberrypi_gpio import restart
+else:
+    raise Exception("config is invalid, please provide a relay type")
+
+
+def get_nice_time():
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+
+def avg(l):
+    return sum(l) / float(len(l))
 
 class ProtocolError(Exception):
     pass
@@ -105,11 +133,8 @@ class BedditConnection(object):
         return (packet_number, channel1, channel2)
 
 def get_beddit_mac():
-    beddit_mac = None
-    PATH = os.path.dirname(os.path.realpath(__file__))
-    with open (os.path.join(PATH, "beddit_mac.txt"), "r") as mac_file:
-        beddit_mac=mac_file.readlines()[0].strip()
-    return str(beddit_mac)
+    return settings["beddit"]["mac"].strip()
+
 
 class BedditStreamer:
     def __init__(self):
@@ -121,7 +146,8 @@ class BedditStreamer:
                 ser = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
                 ser.connect((get_beddit_mac(), self.port))
         except TimeoutError as e:
-            print("connection timeout")
+            if debug:
+                print("connection timeout")
             self.port += 1
             ser.close()
             raise e
@@ -132,7 +158,8 @@ class BedditStreamer:
             self.conn.start_streaming()
         
         except Exception as e:
-            print("beddit dissconnect")
+            if debug:
+                print("beddit dissconnect")
             self.conn.stop_streaming()
             self.conn.disconnect()
             raise e
@@ -152,6 +179,72 @@ class BedditStreamer:
     def close(self):
         self.conn.stop_streaming()
         self.conn.disconnect()
+        
+        
+        
+def run_logging_server(log_callback):
+    a = None
+    connected = False
+    last_packet_number = None
+    timeout_count = 0
+    packet = -1
+    while True:
+        try:
+            if not connected:
+                with timeout(15):
+                    if debug:
+                        print("Connecting")
+                    connected = True
+                    if debug:
+                        a = BedditStreamer()
+                    if debug:
+                        print("Connected")
+            last_packet_number = a.last_packet_number
+            with timeout(15):
+                channel1, channel2 = a.get_reading()
+            last_packet_number = a.last_packet_number
+            data = [ time.time(),avg(channel1), avg(channel2)]
+            log_callback(time.time(), "beddit",avg(channel1), avg(channel2))
+            # print(data)
+        except (bluetooth.BluetoothError, TimeoutError) as e:
+            if debug:
+                print("got: " + str(e) + " at packet: " + str(last_packet_number) + " on time: " + str(get_nice_time()))
+            if e.message.find("Bad file descriptor") > 0 or e.message.find("16") > 0 or type(e) == TimeoutError:
+                if debug:
+                    print("sleeing 2")
+                time.sleep(2)
+                connected = False
+                a.conn.disconnect()
+            if type(e) == TimeoutError or e.message.find("112, 'Host is down'") > 0:
+                if a is None or packet == a.last_packet_number:
+                    timeout_count += 1
+                    if debug:
+                        print("times to restart: " + str(5 - timeout_count))
+                    if timeout_count == 5:
+                        timeout_count = 0
+                        restart()
+                if a is not None:
+                    packet = a.last_packet_number
+                
+            if e.message.find("Bad file descriptor"):    
+                connected = False
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("User sent termination call")
+            try:
+                a.conn.stop_streaming()
+                a.conn.disconnect()
+                sys.exit()
+            except Exception:
+                if debug:
+                    print(traceback.format_exc())
+                sys.exit()
+        except Exception as e:
+            time.sleep(1)
+            if debug:
+                print("got: " + str(e) + " at packet: " + str(last_packet_number)  + " on time: " + str(get_nice_time()))
+                print(traceback.format_exc())
+    return
 
 
 if __name__ == "__main__":

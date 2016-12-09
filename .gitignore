@@ -89,3 +89,4 @@ ENV/
 .ropeproject
 
 src/beddit_mac.txt
+src/config.ini
