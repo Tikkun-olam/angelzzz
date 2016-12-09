@@ -8,8 +8,6 @@ import sys
 import bluetooth
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from common import avg
-
 from Database import AngelzzzDB, Base
 from timeout import timeout, TimeoutError
 
@@ -34,8 +32,8 @@ def run_server_forever():
     
     engine = create_engine(DB_PATH)
     init_db(engine)
-    def log_db(measure_time, beddit, chan1, chan2):
-        insert_to_db(engine, time.time(), "beddit", avg(channel1), avg(channel2))
+    def log_db(measure_time, beddit, channel1, channel2):
+        insert_to_db(engine, time.time(), "beddit",channel1, channel2)
     
         
     run_logging_server(log_db)

@@ -80,7 +80,7 @@ class BedditConnection(object):
             data = self.connection.recv(packet_size)
             while len(data) < packet_size:
                 if debug:
-                    print("receiving " + str(len(data)) + "/" + packet_size)
+                    print("receiving " + str(len(data)) + "/" + str(packet_size))
                 data = data + self.connection.recv(packet_size - len(data))
 
         return data
