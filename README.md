@@ -33,9 +33,11 @@ sudo bluetoothctl
 # connect [beddit MAC]
 ~~~
 
-4) Place your beddit mac in ``src/beddit_mac.txt`` (take a look at ``src/beddit_mac.txt.example`` for example.
+4) Place your beddit mac in ``src/config.ini`` (take a look at ``src/config.ini.example`` for example.
 
-5) To start logging run: ``src/ngelzzz_server.py``
+5) select your relay type to turn the beddit on and off in the ``[beddit]`` section in ``src/config.ini``
+
+6) To start logging run: ``src/ngelzzz_server.py``
 
 ## Viewing logged data
 To output a csv-readable file our of the database stored in ``/home/pi/angelzzz.sql`` run:
