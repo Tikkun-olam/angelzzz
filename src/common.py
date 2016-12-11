@@ -1,5 +1,9 @@
 from ConfigParser import SafeConfigParser
 from collections import OrderedDict
+import os.path
+
+PATH = os.path.dirname(os.path.realpath(__file__))
+DB_PATH = "sqlite:///" + os.path.join(PATH, "angelzzz.sql")
 
 def avg(l):
     return sum(l) / float(len(l))

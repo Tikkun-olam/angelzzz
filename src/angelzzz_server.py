@@ -10,10 +10,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from Database import AngelzzzDB, Base
 from timeout import timeout, TimeoutError
-
-
-PATH = os.path.dirname(os.path.realpath(__file__))
-DB_PATH = "sqlite:///" + os.path.join(PATH, "angelzzz.sql")
+import multiprocessing
+from common import DB_PATH
+from webserver import app
+debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
 
 def init_db(engine):
@@ -35,8 +35,16 @@ def run_server_forever():
     def log_db(measure_time, beddit, channel1, channel2):
         insert_to_db(engine, time.time(), "beddit",channel1, channel2)
     
-        
-    run_logging_server(log_db)
+    
+    p_logger = multiprocessing.Process(target=run_logging_server, args=(log_db, ))
+    web_logger = multiprocessing.Process(target=app.run, kwargs=dict(debug=debug))
+    
+    p_logger.start()
+    web_logger.start()
+    
+    while True:
+        #print("running")
+        time.sleep(100)
     
 
 

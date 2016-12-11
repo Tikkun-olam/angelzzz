@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.sql import select
 from Database import AngelzzzDB, Base
-from angelzzz_server import DB_PATH
+from common import DB_PATH
 
 
 if __name__ == "__main__":
