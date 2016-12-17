@@ -7,6 +7,7 @@ import StringIO
 from flask_bootstrap import Bootstrap
 import gzip
 import functools
+import time
 
 app = Flask("angelzzz")
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_PATH
@@ -51,12 +52,12 @@ def gzipped(f):
 
     return view_func
 
-@app.route("/download/all")
-@gzipped
-def download_all():
+
+def get_select_result(select_data):
     engine = create_engine(DB_PATH)
     conn = engine.connect()
-    s = select([AngelzzzDB])
+    print("yay")
+    s = select_data()
     result = conn.execute(s)
     return_value = StringIO.StringIO()
     
@@ -70,6 +71,17 @@ def download_all():
                      mimetype='text/csv',
                      as_attachment=True)
 
+    
+
+@app.route("/download/all")
+@gzipped
+def download_all():
+    return get_select_result(lambda: select([AngelzzzDB]))
+
+@app.route("/download/last_day")
+@gzipped
+def last_day():
+    return get_select_result(lambda: select([AngelzzzDB]).where(AngelzzzDB.__table__.c.time >= time.time() - 24*60*60))
 
 @app.route("/hello")
 def hello():
