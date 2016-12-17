@@ -1,0 +1,9 @@
+[Unit]
+Description=Angelzzz Server
+[Service]
+ExecStart=/bin/bash -c '/usr/bin/python SERVER_PLACEHOLDER  > LOG_PLACEHOLDER 2>&1'
+[Install]
+WantedBy=multi-user.target
+[Service]
+#Environment=DEBUG=on
+WorkingDirectory=WORKING_DIR_PLACEHOLDER

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 from bedditbt import run_logging_server 
 import time
