@@ -56,7 +56,6 @@ def gzipped(f):
 def get_select_result(select_data):
     engine = create_engine(DB_PATH)
     conn = engine.connect()
-    print("yay")
     s = select_data()
     result = conn.execute(s)
     return_value = StringIO.StringIO()

@@ -9,7 +9,7 @@ import sys
 import traceback
 import shutil
 import bluetooth
-from common import iniToDict, avg
+from common import iniToDict, avg, log
 import datetime
 from timeout import timeout, TimeoutError
 
@@ -79,8 +79,7 @@ class BedditConnection(object):
         with timeout(timeout_max):
             data = self.connection.recv(packet_size)
             while len(data) < packet_size:
-                if debug:
-                    print("receiving " + str(len(data)) + "/" + str(packet_size))
+                log("receiving " + str(len(data)) + "/" + str(packet_size))
                 data = data + self.connection.recv(packet_size - len(data))
 
         return data
@@ -89,8 +88,7 @@ class BedditConnection(object):
         self.read_count += 1
         
         if self.read_count > 1000:
-            if debug:
-                print("Restarting stream")
+            log("Restarting stream")
             self.read_count = 0
             self.stop_streaming()
             self.start_streaming()
@@ -142,9 +140,9 @@ class BedditStreamer:
             with timeout(10):
                 ser = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
                 ser.connect((get_beddit_mac(), self.port))
+                        
         except TimeoutError as e:
-            if debug:
-                print("connection timeout")
+            log("connection timeout")
             self.port += 1
             ser.close()
             raise e
@@ -155,8 +153,7 @@ class BedditStreamer:
             self.conn.start_streaming()
         
         except Exception as e:
-            if debug:
-                print("beddit dissconnect")
+            log("beddit dissconnect")
             self.conn.stop_streaming()
             self.conn.disconnect()
             raise e
@@ -189,13 +186,10 @@ def run_logging_server(log_callback):
         try:
             if not connected:
                 with timeout(15):
-                    if debug:
-                        print("Connecting")
+                    log("Connecting")
                     connected = True
-                    if debug:
-                        a = BedditStreamer()
-                    if debug:
-                        print("Connected")
+                    a = BedditStreamer()
+                    log("Connected")
             last_packet_number = a.last_packet_number
             with timeout(15):
                 channel1, channel2 = a.get_reading()
@@ -204,19 +198,16 @@ def run_logging_server(log_callback):
             log_callback(time.time(), "beddit",avg(channel1), avg(channel2))
             # print(data)
         except (bluetooth.BluetoothError, TimeoutError) as e:
-            if debug:
-                print("got: " + str(e) + " at packet: " + str(last_packet_number) + " on time: " + str(get_nice_time()))
+            log("got: " + str(e) + " at packet: " + str(last_packet_number) + " on time: " + str(get_nice_time()))
             if e.message.find("Bad file descriptor") > 0 or e.message.find("16") > 0 or type(e) == TimeoutError:
-                if debug:
-                    print("sleeing 2")
+                log("sleeing 2")
                 time.sleep(2)
                 connected = False
                 a.conn.disconnect()
             if type(e) == TimeoutError or e.message.find("112, 'Host is down'") > 0:
                 if a is None or packet == a.last_packet_number:
                     timeout_count += 1
-                    if debug:
-                        print("times to restart: " + str(5 - timeout_count))
+                    log("times to restart: " + str(5 - timeout_count))
                     if timeout_count == 5:
                         timeout_count = 0
                         restart()
@@ -233,14 +224,12 @@ def run_logging_server(log_callback):
                 a.conn.disconnect()
                 sys.exit()
             except Exception:
-                if debug:
-                    print(traceback.format_exc())
+                log(traceback.format_exc())
                 sys.exit()
         except Exception as e:
             time.sleep(1)
-            if debug:
-                print("got: " + str(e) + " at packet: " + str(last_packet_number)  + " on time: " + str(get_nice_time()))
-                print(traceback.format_exc())
+            log("got: " + str(e) + " at packet: " + str(last_packet_number)  + " on time: " + str(get_nice_time()))
+            log(traceback.format_exc())
     return
 
 

@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from Database import AngelzzzDB, Base
 from timeout import timeout, TimeoutError
 import multiprocessing
-from common import DB_PATH
+from common import DB_PATH, init_log
 from webserver import app
 debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
@@ -31,6 +31,7 @@ def insert_to_db(engine, time, beddit, channel1, channel2):
     
 def run_server_forever():
     
+    init_log()
     engine = create_engine(DB_PATH)
     init_db(engine)
     def log_db(measure_time, beddit, channel1, channel2):
@@ -44,7 +45,7 @@ def run_server_forever():
     web_logger.start()
     
     while True:
-        #print("running")
+        print("running")
         time.sleep(100)
     
 
