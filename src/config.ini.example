@@ -2,3 +2,9 @@
 relay=dummy
 mac=00:07:80:17:CD:3D
 #relay=gpio
+[db]
+host=localhost
+port=3306
+user=root
+password=raspberry
+db_name=angelzzz

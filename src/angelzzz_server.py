@@ -2,6 +2,7 @@
 import argparse
 from bedditbt import run_logging_server 
 import time
+from datetime import datetime
 import traceback
 import os.path
 import os
@@ -12,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 from Database import AngelzzzDB, Base
 from timeout import timeout, TimeoutError
 import multiprocessing
-from common import DB_PATH, init_log
+from common import DB_PATH, init_log, mysql_init_db
 from webserver import app
 debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
@@ -33,9 +34,10 @@ def run_server_forever():
     
     init_log()
     engine = create_engine(DB_PATH)
+    mysql_init_db()
     init_db(engine)
     def log_db(measure_time, beddit, channel1, channel2):
-        insert_to_db(engine, time.time(), "beddit",channel1, channel2)
+        insert_to_db(engine, datetime.utcnow(), "beddit",float(channel1), float(channel2))
     
     
     p_logger = multiprocessing.Process(target=run_logging_server, args=(log_db, ))

@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, desc
 from Database import AngelzzzDB, Base
 from common import DB_PATH
 from flask import Flask, send_file, render_template, after_this_request, request
@@ -16,7 +16,8 @@ Bootstrap(app)
 
 @app.route("/")
 def root():
-    return render_template("index.jinja2")
+    readout=print_select_result(lambda: select([AngelzzzDB]).where(AngelzzzDB.__table__.c.time >= time.time() - 60).order_by(desc(AngelzzzDB.time)).limit(1))
+    return render_template("index.jinja2", readout=readout)
     
     
 def gzipped(f):
@@ -69,6 +70,16 @@ def get_select_result(select_data):
                      attachment_filename="testing.csv",
                      mimetype='text/csv',
                      as_attachment=True)
+
+def print_select_result(select_data):
+    engine = create_engine(DB_PATH)
+    conn = engine.connect()
+    s = select_data()
+    result = conn.execute(s)
+    return_value = ""
+    for row in result:
+        return_value += str(row["time"]) + "," + str(row["channel1"]) + "," +  str(row["channel2"]) + "\n"
+    return return_value
 
     
 

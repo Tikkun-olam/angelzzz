@@ -9,14 +9,13 @@ import sys
 import traceback
 import shutil
 import bluetooth
-from common import iniToDict, avg, log
+from common import iniToDict, avg, log, CONFIG_PATH
 import datetime
 from timeout import timeout, TimeoutError
 
 debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
 
 PATH = os.path.dirname(os.path.realpath(__file__))
-CONFIG_PATH = os.path.join(PATH, "config.ini")
 
 if not os.path.isfile(CONFIG_PATH):
     shutil.copy(os.path.join(PATH, "config.ini.example"),CONFIG_PATH)
@@ -203,7 +202,10 @@ def run_logging_server(log_callback):
                 log("sleeing 2")
                 time.sleep(2)
                 connected = False
-                a.conn.disconnect()
+                try:
+                    a.conn.disconnect()
+                except:
+                    pass
             if type(e) == TimeoutError or e.message.find("112, 'Host is down'") > 0:
                 if a is None or packet == a.last_packet_number:
                     timeout_count += 1

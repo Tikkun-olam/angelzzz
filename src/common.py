@@ -2,9 +2,10 @@ from ConfigParser import SafeConfigParser
 from collections import OrderedDict
 import os
 import os.path
+from sqlalchemy import create_engine
 
 PATH = os.path.dirname(os.path.realpath(__file__))
-DB_PATH = "sqlite:///" + os.path.join(PATH, "angelzzz.sql")
+CONFIG_PATH = os.path.join(PATH, "config.ini")
 LOG_PATH = os.path.join(PATH, "angelzzz.log")
 
 debug = 'DEBUG' in os.environ and os.environ['DEBUG'] == "on"
@@ -26,6 +27,14 @@ def iniToDict(path):
         for itemTurple in reversed(sectionTurples):
             returnValue[section][itemTurple[0]] = itemTurple[1]
     return returnValue
+
+settings = iniToDict(CONFIG_PATH)
+DB_PATH = "mysql+mysqlconnector://" + settings["db"]["user"] +":" + settings["db"]["password"] + "@" + settings["db"]["host"] +"/" + settings["db"]["db_name"]
+
+def mysql_init_db():
+    mysql_engine = create_engine('mysql://{0}:{1}@{2}'.format(settings["db"]["user"], settings["db"]["password"], settings["db"]["host"]))
+    mysql_engine.execute("CREATE DATABASE IF NOT EXISTS {0} ".format(settings["db"]["db_name"]))
+    return
 
 def dictToIni(d, ini_path):
     
