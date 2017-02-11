@@ -37,7 +37,9 @@ sudo bluetoothctl
 
 5) select your relay type to turn the beddit on and off in the ``[beddit]`` section in ``src/config.ini``
 
-6) To start logging run: ``src/ngelzzz_server.py``
+6) To start logging run: ``src/angelzzz_server.py``
+
+7) You can create a service for startup using ``src/add_startup_service.sh``
 
 ## Viewing logged data
 To output a csv-readable file our of the database stored in ``/home/pi/angelzzz.sql`` run:
