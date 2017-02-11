@@ -2,6 +2,10 @@
 relay=dummy
 mac=00:07:80:17:CD:3D
 #relay=gpio
+
+#relay=orvibo
+#relay_mac=ac:cf:23:97:9b:bc
+#relay_ip=10.0.0.11
 [db]
 host=localhost
 port=3306
