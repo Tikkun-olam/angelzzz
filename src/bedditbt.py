@@ -29,6 +29,8 @@ if settings["beddit"]["relay"] == "dummy":
         return
 elif settings["beddit"]["relay"] == "gpio":
     from raspberrypi_gpio import restart
+elif settings["beddit"]["relay"] == "orvibo":
+    from orvibo_s20 import restart
 else:
     raise Exception("config is invalid, please provide a relay type")
 
