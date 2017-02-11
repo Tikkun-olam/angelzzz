@@ -14,10 +14,19 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DB_PATH
 
 Bootstrap(app)
 
+
+def get_last_readout():
+    return print_select_result(lambda: select([AngelzzzDB]).where(AngelzzzDB.__table__.c.time >= time.time() - 60).order_by(desc(AngelzzzDB.time)).limit(1))
+
 @app.route("/")
 def root():
-    readout=print_select_result(lambda: select([AngelzzzDB]).where(AngelzzzDB.__table__.c.time >= time.time() - 60).order_by(desc(AngelzzzDB.time)).limit(1))
+    readout=get_last_readout()
     return render_template("index.jinja2", readout=readout)
+
+@app.route("/view/plot")
+def plot():
+    readout=get_last_readout()
+    return render_template("plot.jinja2", readout=readout)
     
     
 def gzipped(f):
@@ -60,6 +69,8 @@ def get_select_result(select_data):
     s = select_data()
     result = conn.execute(s)
     return_value = StringIO.StringIO()
+
+    return_value.write("time,channel1,channel2\n")
     
     for row in result:
         return_value.write(str(row["time"]) + "," + str(row["channel1"]) + "," +  str(row["channel2"]) + "\n")

@@ -11,7 +11,7 @@ class AngelzzzDB(Base):
     """This is the SQLiteAlchemy database structure, in the declarative form"""
     __tablename__ = "log"
     
-    time = Column(DATETIME(fsp=3), primary_key=True)
+    time = Column(DATETIME(fsp=3), primary_key=True, index=True)
     beddit = Column(String(255))
     channel1 = Column(Float)
     channel2 = Column(Float)

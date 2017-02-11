@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>Angelzzz Last 24 Hour Plot</title>
+<script src="//cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+<a href="/">Home</a><br/>
+<a href="download/last_day">Last Day</a><br/>
+Last Entry: {{ readout }}<br/>
+
+<div class="graph" style="height: 70vh;" id="raw-plot"></div>
+<script type="text/javascript">
+Plotly.d3.csv('/download/last_day', function(rows){
+    var trace = {
+      type: 'scatter',                    // set the chart type
+      mode: 'lines',                      // connect points with lines
+      x: rows.map(function(row){          // set the x-data
+        return row['time'];
+      }),
+      y: rows.map(function(row){          // set the x-data
+        return row['channel1'];
+      }),
+      line: {                             // set the width of the line.
+        width: 1
+      }//,
+      //error_y: {
+      //  array: rows.map(function(row){    // set the height of the error bars
+      //    return row['10 Min Std Dev'];
+      //  }),
+      //  thickness: 0.5,                   // set the thickness of the error bars
+      //  width: 0
+      //}
+    };
+
+    var layout = {
+      yaxis: {title: "Pressure"},       // set the y axis title
+      xaxis: {
+        showgrid: false,                  // remove the x-axis grid lines
+        tickformat: "%H:%M:%S.%2f %d-%m"              // customize the date format to "month, day"
+      },
+      margin: {                           // update the left, bottom, right, top margin
+        l: 40, b: 30, r: 10, t: 20
+      }
+    };
+
+    Plotly.plot(document.getElementById('raw-plot'), [trace], layout, {showLink: false});
+});
+</script>
+</body>
+</html>

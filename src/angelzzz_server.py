@@ -41,7 +41,7 @@ def run_server_forever():
     
     
     p_logger = multiprocessing.Process(target=run_logging_server, args=(log_db, ))
-    web_logger = multiprocessing.Process(target=app.run, kwargs=dict(debug=debug, host='0.0.0.0'))
+    web_logger = multiprocessing.Process(target=app.run, kwargs=dict(debug=debug, host='0.0.0.0', threaded=True))
     
     p_logger.start()
     web_logger.start()
