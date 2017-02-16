@@ -45,6 +45,26 @@ sudo bluetoothctl
 To output a csv-readable file our of the database stored in ``/home/pi/angelzzz.sql`` run:
 ``read_results.py > output.csv``
 
+## Control relay setup
+
+The beddit has this bug that it dies after about an hour of recording, and you need to plug out and in to work. To workaround this probolem you can use an electronic power socket to do this. There are two types: one controled from a RaspberryPi GPIO and the [Orvibo S20 Wifi Power Socket](https://www.amazon.com/Orvibo-Socket-Electronics-Anywhere-WiWo-S20/dp/B00KT50HK4).
+
+### Set up a Orvibo S20 Wifi Power Socket
+
+To set it up download the app for it and pair it to the same network your Pi is connected to.
+Then in ``config.ini``.
+For example:
+
+```
+[beddit]
+mac=00:07:80:17:CD:3D
+relay=orvibo
+relay_mac=ac:cf:23:97:9b:bc
+relay_ip=10.0.0.4
+```
+Make sure you have both the beddit set up, your relay set to orvibo, relay MAC and relay IP.
+
+
 # Specs
 * [Beddit protocol](https://github.com/sliedes/beddit-driver/blob/master/protocol.txt)
 * [The officlal repo we found](https://github.com/beddit/beddit-python-bt)
@@ -59,6 +79,6 @@ To output a csv-readable file our of the database stored in ``/home/pi/angelzzz.
 * Bad sleep habits (on top of the regular ones)
 
 
-# Files
+# Old Files
 * Currently have a [file that saves all the data to a .csv.gz file](https://github.com/Tikkun-olam/angelzzz/blob/devel/src/bedditbt.py)
 * [File to analize the data from the sensor](https://github.com/Tikkun-olam/angelzzz/blob/devel/src/analize_events.py)
