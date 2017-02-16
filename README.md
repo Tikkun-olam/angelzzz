@@ -47,7 +47,7 @@ To output a csv-readable file our of the database stored in ``/home/pi/angelzzz.
 
 ## Control relay setup
 
-The beddit has this bug that it dies after about an hour of recording, and you need to plug out and in to work. To workaround this probolem you can use an electronic power socket to do this. There are two types: one controled from a RaspberryPi GPIO and the [Orvibo S20 Wifi Power Socket](https://www.amazon.com/Orvibo-Socket-Electronics-Anywhere-WiWo-S20/dp/B00KT50HK4).
+The beddit has this bug that it dies after about an hour of recording, and you need to plug out and in to work. To workaround this probolem you can use a digital power socket to do this. There are two types: one controled from a RaspberryPi GPIO and the [Orvibo S20 Wifi Power Socket](https://www.amazon.com/Orvibo-Socket-Electronics-Anywhere-WiWo-S20/dp/B00KT50HK4).
 
 ### Set up a Orvibo S20 Wifi Power Socket
 
@@ -64,6 +64,19 @@ relay_ip=10.0.0.4
 ```
 Make sure you have both the beddit set up, your relay set to orvibo, relay MAC and relay IP.
 
+
+### Set up a RaspberryPi GPIO Controlled Power Socket
+
+Make sure to select in the ``config.ini``:
+
+```
+[beddit]
+relay=gpio
+```
+
+1. Set pin 23 to turn on to transmit the on signal
+2.  Set pin 24 to turn on to transmit the off signal
+These pin settings can be changed in the python script ``src/raspberrypi_gpio.py``
 
 # Specs
 * [Beddit protocol](https://github.com/sliedes/beddit-driver/blob/master/protocol.txt)
