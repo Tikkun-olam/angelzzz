@@ -9,7 +9,7 @@ The challange is to build a sleep and seizure for kids with Angelman Syndrome, t
 * Raspberrypi 3/2 with bluetooth/wifi
 
 # Setup Overview
-[Here is a video of how you should assemble evreything](https://www.youtube.com/watch?v=UTEvhdu6E9Q)
+[Here is a video of how you should assemble everything](https://www.youtube.com/watch?v=UTEvhdu6E9Q)
 
 # Installation
 1) Set up a raspberrypi with Raspbian that is conencted to the internet
